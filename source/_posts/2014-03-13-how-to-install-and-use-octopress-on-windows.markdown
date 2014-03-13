@@ -96,6 +96,14 @@ git push origin source.
 ```
 
 
+##Workflow when editing your blog
+1. Make your modification to your local repo using `rake new_post` and editing your markdown
+2. `rake generate && rake preview` to check your changes
+2. `git add .` and `git commit -m "update blog"`
+3.  `rake deploy` to deploy the resulting blog
+4. `git push origin source` to deploy your Octopress sources
+
+
 Now you have no excuse not making a blog of your own...   
 Happy Coding   
 Avi
