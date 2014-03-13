@@ -4,7 +4,7 @@
   <title><![CDATA[Coding Experience]]></title>
   <link href="http://thaiat.github.io/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T19:05:12+02:00</updated>
+  <updated>2014-03-13T20:31:14+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[How to Install and Use Octopress on Windows]]></title>
+    <title type="html"><![CDATA[How to install and use Octopress on Windows]]></title>
     <link href="http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows/"/>
     <updated>2014-03-13T14:33:36+02:00</updated>
     <id>http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows</id>
@@ -174,7 +174,7 @@ Avi</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Extending an Existing Directive in Angularjs]]></title>
+    <title type="html"><![CDATA[Extending an existing directive in angularjs]]></title>
     <link href="http://thaiat.github.io/blog/2014/03/10/extending-an-existing-directive-in-angularjs/"/>
     <updated>2014-03-10T12:12:32+02:00</updated>
     <id>http://thaiat.github.io/blog/2014/03/10/extending-an-existing-directive-in-angularjs</id>
@@ -628,7 +628,7 @@ Let&rsquo;s modify the first directive</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Angularjs and Requirejs for Very Large Applications]]></title>
+    <title type="html"><![CDATA[Angularjs and Requirejs for very large applications]]></title>
     <link href="http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications/"/>
     <updated>2014-02-26T10:14:06+02:00</updated>
     <id>http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications</id>

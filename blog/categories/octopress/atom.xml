@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Octopress | Coding Experience]]></title>
+  <title><![CDATA[Category: octopress | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T19:05:12+02:00</updated>
+  <updated>2014-03-13T20:31:14+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[How to Install and Use Octopress on Windows]]></title>
+    <title type="html"><![CDATA[How to install and use Octopress on Windows]]></title>
     <link href="http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows/"/>
     <updated>2014-03-13T14:33:36+02:00</updated>
     <id>http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows</id>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Lazy Loading | Coding Experience]]></title>
+  <title><![CDATA[Category: lazy loading | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/lazy-loading/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T19:05:12+02:00</updated>
+  <updated>2014-03-13T20:31:14+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Angularjs and Requirejs for Very Large Applications]]></title>
+    <title type="html"><![CDATA[Angularjs and Requirejs for very large applications]]></title>
     <link href="http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications/"/>
     <updated>2014-02-26T10:14:06+02:00</updated>
     <id>http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications</id>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Extending | Coding Experience]]></title>
+  <title><![CDATA[Category: extending | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/extending/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T19:05:12+02:00</updated>
+  <updated>2014-03-13T20:31:14+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Extending an Existing Directive in Angularjs]]></title>
+    <title type="html"><![CDATA[Extending an existing directive in angularjs]]></title>
     <link href="http://thaiat.github.io/blog/2014/03/10/extending-an-existing-directive-in-angularjs/"/>
     <updated>2014-03-10T12:12:32+02:00</updated>
     <id>http://thaiat.github.io/blog/2014/03/10/extending-an-existing-directive-in-angularjs</id>
