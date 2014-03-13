@@ -73,7 +73,7 @@ rake generate && rake preview
 You can open a browser and navigate to `http://localhost:4000`
 
 ### Step 5 : Blogging
-To create a new post 
+To create a new post
 ```bat Create a new blog post
 rake new_post["Hello World Post No 1"]
 ```
