@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Octopress | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T18:17:22+02:00</updated>
+  <updated>2014-03-13T19:05:12+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -130,6 +130,15 @@ git push origin source.
 <li><code>git push origin source</code> to deploy your Octopress sources</li>
 </ol>
 
+
+<h2>Tips</h2>
+
+<p>If you need to put images in your blog just place them in source\images and reference them with
+
+<code>html img
+&lt;img src="{{root-url}}/images/yourimage.png" /&gt;
+</code>
+</p>
 
 <p>Now you have no excuse not making a blog of your own&hellip; <br/>
 Happy Coding <br/>

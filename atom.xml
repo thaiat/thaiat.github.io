@@ -4,7 +4,7 @@
   <title><![CDATA[Coding Experience]]></title>
   <link href="http://thaiat.github.io/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T18:17:22+02:00</updated>
+  <updated>2014-03-13T19:05:12+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -156,6 +156,15 @@ In a snap the blog will be accessible at the url <a href="http://yourusername.gi
 <li><code>rake deploy</code> to deploy the resulting blog</li>
 <li><code>git push origin source</code> to deploy your Octopress sources</li>
 </ol>
+
+
+<h2>Tips</h2>
+
+<p>If you need to put images in your blog just place them in source\images and reference them with</p>
+
+<figure class='code'><figcaption><span>img</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">&quot;{{root-url}}/images/yourimage.png&quot;</span> <span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Now you have no excuse not making a blog of your own&hellip; <br/>
