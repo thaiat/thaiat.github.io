@@ -5,6 +5,7 @@ date: 2014-03-10 12:12:32 +0200
 comments: true
 categories: [angularjs, directive, requirejs, oop, extending]
 ---
+
 Working example : [http://thaiat.github.io/angular-extending-directive/][1]
 
 Let's say you have a third party angularjs directive that you want to extend or simply access the api defined by its controller.   
