@@ -44,7 +44,7 @@ You should get `git version 1.0.0.msysgit.0`
 
 ```bat Install Ruby Devkit with Chocolatey
 c:
-choco install ruby.devkit
+choco install ruby.devkit 
 ```
 
 This will install the devkit in `C:\Devkit`
@@ -103,6 +103,13 @@ git push origin source.
 3.  `rake deploy` to deploy the resulting blog
 4. `git push origin source` to deploy your Octopress sources
 
+##Tips
+If you need to put images in your blog just place them in source\images and reference them with
+{% raw %}
+```html img
+<img src="{{root-url}}/images/yourimage.png" />
+```
+{% endraw %}
 
 Now you have no excuse not making a blog of your own...   
 Happy Coding   
