@@ -84,7 +84,8 @@ Github pages expect to have two branches, the source branch and the master branc
 ```bat rake command for setting up github pages
 rake setup_github_pages[repo].
 ```
-In the case of this blog, I ran `rake setup_github_pages[git@github.com:myusername/myusername.github.io.git]` and then `rake deploy` to upload the blog. In a snap the blog will be accessible in the url http://myusername.github.io.
+In the case of this blog, I ran `rake setup_github_pages[git@github.com:myusername/myusername.github.io.git]` and then `rake deploy` to upload the blog.   
+In a snap the blog will be accessible at the url http://myusername.github.io.
 
 Remember that rake deploy just generates the blog a push to the master branch. Your source branch won’t be uploaded to github if you don’t want to. You probably want, to have a secure backup online, among other reason. Commit your changes and do 
 ```bat pushing the sources
