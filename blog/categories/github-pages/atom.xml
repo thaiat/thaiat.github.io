@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Github Pages | Coding Experience]]></title>
+  <link href="http://thaiat.github.io/blog/categories/github-pages/atom.xml" rel="self"/>
+  <link href="http://thaiat.github.io/"/>
+  <updated>2014-03-13T16:48:22+02:00</updated>
+  <id>http://thaiat.github.io/</id>
+  <author>
+    <name><![CDATA[Avi Haiat]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[How to Install and Use Octopress on Windows]]></title>
+    <link href="http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows/"/>
+    <updated>2014-03-13T14:33:36+02:00</updated>
+    <id>http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows</id>
+    <content type="html"><![CDATA[<p>A quick and easy 6 steps tutorial to get up and running with octopress and github pages</p>
+
+<h3>Step 1: Install Chocolatey</h3>
+
+<ol>
+<li>Got to <a href="http://chocolatey.org">http://chocolatey.org</a></li>
+<li>Open a command prompt</li>
+<li>cd to <code>c:\</code></li>
+<li>Paste in and execute the following code from chocolatey home page
+<code>bat Install Chocolatey
+@powershell -NoProfile -ExecutionPolicy unrestricted -Command "iex
+((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"
+&amp;&amp; SET PATH=%PATH%;%systemdrive%\chocolatey\bin
+</code></li>
+</ol>
+
+
+<p>This will install chocolatey in <code>C:\Chocolatey</code></p>
+
+<h3>Step 2: Make sure Git is installed or install it via Chocolatey</h3>
+
+<p><code>bat Install Git with Chocolatey
+choco install git
+</code></p>
+
+<p>To check that git is installed close and reopen a command prompt and run the following command:
+<code>bat Check Git version
+git --version
+</code></p>
+
+<p>You should get <code>git version 1.0.0.msysgit.0</code></p>
+
+<h3>Step 3 : Install Ruby</h3>
+
+<ol>
+<li>Install <code>Ruby 1.9.3-p545</code> from <code>http://rubyinstaller.org</code></li>
+<li>Ruby should be installed in <code>C:\Ruby193</code></li>
+<li>Add the following path to the system variables Path : <code>c:\Ruby193\bin</code></li>
+<li>Exit and reopen command prompt and run <code>ruby --version</code>, you should get <code>ruby 1.9.3-p545</code></li>
+<li>Install ruby developpement kit with chocolatey</li>
+</ol>
+
+
+<p><code>bat Install Ruby Debkit with Chocolatey
+c:
+choco install ruby.devkit
+</code></p>
+
+<p>This will install the devkit in <code>C:\Devkit</code></p>
+
+<h3>Step 4 : Install Octopress</h3>
+
+<p>Navigate to your github local repositories folder (for example mine is d:\github) <br/>
+The installation of Octopress consist in cloning the repository of Octopress
+<code>bat Clone Octopress repository
+git clone git://github.com/imathis/octopress.git blog
+</code></p>
+
+<p>Navigate to the created folder and then run the following command to install the dependencies
+<code>bat Install Octopress dependencies
+gem install bundler
+bundle install
+</code></p>
+
+<p>Then install the default Octopress theme
+<code>bat Install Octopress default theme
+rake install
+</code></p>
+
+<p>Next edit <code>_config.yml</code> and adjust it with your blog properties (title,name, google tracker, etc&hellip;)</p>
+
+<p>And now we can generate the site
+<code>bat Generate and preview Octopress blog
+rake generate &amp;&amp; rake preview
+</code>
+You can open a browser and navigate to <code>http://localhost:4000</code></p>
+
+<h3>Step 5 : Blogging</h3>
+
+<p>To create a new post
+<code>bat Create a new blog post
+rake new_post["Hello World Post No 1"]
+</code>
+The new post file is a simple markdown file generated in <code>source\_posts</code></p>
+
+<h3>Step 6 : Publishing your blog to github pages</h3>
+
+<p>Github pages expect to have two branches, the source branch and the master branch. The master branch is the one that github pages will show. The changes in the source branch won’t be published until you push your changes to master. You can configure those branchs manually and add your github pages repository as a remote, but there is also a rake task that does all for you:
+<code>bat rake command for setting up github pages
+rake setup_github_pages[repo].
+</code>
+In the case of this blog, I ran <code>rake setup_github_pages[git@github.com:myusername/myusername.github.io.git]</code> and then <code>rake deploy</code> to upload the blog. In a snap the blog will be accessible in the url <a href="http://myusername.github.io.">http://myusername.github.io.</a></p>
+
+<p>Remember that rake deploy just generates the blog a push to the master branch. Your source branch won’t be uploaded to github if you don’t want to. You probably want, to have a secure backup online, among other reason. Commit your changes and do
+<code>bat pushing the sources
+git push origin source.
+</code></p>
+
+<p>Now you have no excuse not making a blog of your own&hellip; <br/>
+Happy Coding <br/>
+Avi</p>
+]]></content>
+  </entry>
+  
+</feed>
