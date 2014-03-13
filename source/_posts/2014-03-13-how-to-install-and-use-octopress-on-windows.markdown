@@ -42,7 +42,7 @@ You should get `git version 1.0.0.msysgit.0`
 4. Exit and reopen command prompt and run `ruby --version`, you should get `ruby 1.9.3-p545`
 5. Install ruby developpement kit with chocolatey
 
-```bat Install Ruby Debkit with Chocolatey
+```bat Install Ruby Devkit with Chocolatey
 c:
 choco install ruby.devkit
 ```
