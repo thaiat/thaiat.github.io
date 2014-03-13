@@ -4,7 +4,7 @@
   <title><![CDATA[Coding Experience]]></title>
   <link href="http://thaiat.github.io/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T18:14:04+02:00</updated>
+  <updated>2014-03-13T18:17:22+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -71,7 +71,7 @@ As a pre-requisite you should make sure you have a public github repo with the n
 </ol>
 
 
-<figure class='code'><figcaption><span>Install Ruby Debkit with Chocolatey</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><figcaption><span>Install Ruby Devkit with Chocolatey</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='bat'><span class='line'>c:
 </span><span class='line'>choco install ruby.devkit
