@@ -80,6 +80,17 @@ rake new_post["Hello World Post No 1"]
 The new post file is a simple markdown file generated in `source\_posts`
 
 ### Step 6 : Publishing your blog to github pages
+Github pages expect to have two branches, the source branch and the master branch. The master branch is the one that github pages will show. The changes in the source branch won’t be published until you push your changes to master. You can configure those branchs manually and add your github pages repository as a remote, but there is also a rake task that does all for you: 
+```bat rake command for setting up github pages
+rake setup_github_pages[repo].
+```
+In the case of this blog, I ran `rake setup_github_pages[git@github.com:myusername/myusername.github.io.git]` and then `rake deploy` to upload the blog. In a snap the blog will be accessible in the url http://myusername.github.io.
+
+Remember that rake deploy just generates the blog a push to the master branch. Your source branch won’t be uploaded to github if you don’t want to. You probably want, to have a secure backup online, among other reason. Commit your changes and do 
+```bat pushing the sources
+git push origin source.
+```
+
 
 Now you have no excuse not making a blog of your own...   
 Happy Coding   
