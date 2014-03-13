@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Github Pages | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/github-pages/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T17:06:31+02:00</updated>
+  <updated>2014-03-13T17:10:49+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -119,6 +119,17 @@ In a snap the blog will be accessible at the url <a href="http://myusername.gith
 <code>bat pushing the sources
 git push origin source.
 </code></p>
+
+<h2>Workflow when editing your blog</h2>
+
+<ol>
+<li>Make your modification to your local repo using <code>rake new_post</code> and editing your markdown</li>
+<li><code>rake generate &amp;&amp; rake preview</code> to check your changes</li>
+<li><code>git add .</code> and <code>git commit -m "update blog"</code></li>
+<li><code>rake deploy</code> to deploy the resulting blog</li>
+<li><code>git push origin source</code> to deploy your Octopress sources</li>
+</ol>
+
 
 <p>Now you have no excuse not making a blog of your own&hellip; <br/>
 Happy Coding <br/>
