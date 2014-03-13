@@ -7,6 +7,9 @@ categories: [git, github, github pages, octopress, blog]
 ---
 A quick and easy 6 steps tutorial to get up and running with octopress and github pages
 
+>**NOTE:**   
+> As a pre-requisite you should make sure you have a public github repo with the name : `myusername.github.io`
+
 ### Step 1: Install Chocolatey
 1. Got to http://chocolatey.org
 2. Open a command prompt
