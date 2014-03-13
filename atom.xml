@@ -4,7 +4,7 @@
   <title><![CDATA[Coding Experience]]></title>
   <link href="http://thaiat.github.io/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T17:24:03+02:00</updated>
+  <updated>2014-03-13T18:01:52+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -615,6 +615,471 @@ Let&rsquo;s modify the first directive</p>
 <p>Avi</p>
 
 <p>PS: Big thanks to Nir Kaufman that helped me figure it out.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Angularjs and Requirejs for Very Large Applications]]></title>
+    <link href="http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications/"/>
+    <updated>2014-02-26T10:14:06+02:00</updated>
+    <id>http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications</id>
+    <content type="html"><![CDATA[<blockquote><p><strong>NOTE:</strong> <br/>
+This article assumes that you are familiar with both <code>requirejs</code> and <code>angularjs</code></p></blockquote>
+
+<p>Live demo is available here : <a href="http://thaiat.github.io/directory-angular-ionic-require">http://thaiat.github.io/directory-angular-ionic-require</a></p>
+
+<p>Hi all,</p>
+
+<p>I&rsquo;ve been working with <code>angularjs</code> for the past 3 months.</p>
+
+<p>I like very much the framework, but i had a few issues with what would be the best way to organize the code when writing a large application. Especially i didn&rsquo;t like editing the index.html each time i would write a new directive, controller or service. So i looked at <code>requirejs</code> and started to think how the 2 libraries would play together.</p>
+
+<p>In a nutshell here is my attempt to combine both <code>angularjs</code> and <code>requirejs</code>. <br/>
+Some may argue that this is unnecessary, but i wanted to explain my approach and see what is the feedback. <br/>
+The main reason i needed that is that i&rsquo;m still using Visual Studio as my editor (yes&hellip; i know&hellip;).
+Running the unit test with jasmine in Visual Studio works without an html page, so i needed a way with pure javascript files to link together all my unit tests. <code>requirejs</code> does exactly that&hellip;</p>
+
+<p>So, first, let&rsquo;s see the file structure.</p>
+
+<h2>File and folder structure</h2>
+
+<p>As per the best practices in angular, i wanted to organize my code by features. <br/>
+So the folder structure looks like this:</p>
+
+<figure class='code'><figcaption><span>folder structure</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'>index.html
+</span><span class='line'>scripts/
+</span><span class='line'>   main.js
+</span><span class='line'>   app/
+</span><span class='line'>      area<span class="m">1</span>/
+</span><span class='line'>      area<span class="m">2</span>/
+</span><span class='line'>   libs/
+</span><span class='line'>      angular/
+</span><span class='line'>      ionic/
+</span><span class='line'>      require/
+</span><span class='line'>styles/
+</span><span class='line'>   font-awesome/
+</span><span class='line'>   main.css
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At the root we have scripts and styles, nothing surprising there.
+In the subfolder <code>scripts/libs</code>, i usually put all the external javascript libraries. <br/>
+I like to create a subfolder underneath which is named as the current version number of the library (x.y.z).</p>
+
+<p>For example:</p>
+
+<figure class='code'><figcaption><span>folder structure</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'>libs/
+</span><span class='line'>   angular/
+</span><span class='line'>      <span class="m">1</span>.<span class="m">2</span>.<span class="m">9</span>/
+</span><span class='line'>           angular-animate.js
+</span><span class='line'>           angular-animate.min.js
+</span><span class='line'>           angular-cookies.js
+</span><span class='line'>           .....
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This makes it super easy to try a new version of the library and see if it works, while falling back to the previous one if the new version generates too many bugs.</p>
+
+<p>Right at the root we have the <code>index.html</code>. <br/>
+Here is the code:</p>
+
+<figure class='code'><figcaption><span>index.html</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;html&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;head&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;meta</span> <span class="na">http-equiv=</span><span class="s">&quot;Content-Type&quot;</span> <span class="na">content=</span><span class="s">&quot;text/html; charset=UTF-8&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;link</span> <span class="na">href=</span><span class="s">&quot;styles/main.css&quot;</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="nt">/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nt">&lt;title&gt;</span>Hello World<span class="nt">&lt;/title&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;/head&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;body&gt;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;scripts/libs/require/2.1.10/require.js&quot;</span> <span class="na">data-main=</span><span class="s">&quot;scripts/main&quot;</span><span class="nt">&gt;</span> <span class="nt">&lt;/script&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/body&gt;</span>
+</span><span class='line'><span class="nt">&lt;/html&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see it is also very simple. <br/>
+It references the needed css, and has only a single script tag, pointing to <code>requirejs</code> and defining <code>scripts/main.js</code> as the entry point for the application.</p>
+
+<blockquote><p><strong>NOTE:</strong> <br/>
+Note that the <code>.js</code> extension is omitted when referencing a javascript file with <code>requirejs</code></p></blockquote>
+
+<h3>main.js</h3>
+
+<p>This file first defines the libraries needed by the application. We will see later on how we start the application using require entry point function.</p>
+
+<p>So for the moment the content is pretty simple:</p>
+
+<figure class='code'><figcaption><span>scripts/main.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">require</span><span class="p">.</span><span class="nx">config</span><span class="p">({</span>
+</span><span class='line'>      <span class="nx">paths</span> <span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s1">&#39;angular&#39;</span> <span class="o">:</span> <span class="s1">&#39;libs/angular/1.2.9/angular&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;angularUiRouter&#39;</span> <span class="o">:</span> <span class="s1">&#39;libs/angular/angular-ui/0.2.8/angular-ui-router&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;angularSanitize&#39;</span> <span class="o">:</span> <span class="s1">&#39;libs/angular/1.2.9/angular-sanitize&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;angularAnimate&#39;</span> <span class="o">:</span> <span class="s1">&#39;libs/angular/1.2.9/angular-animate&#39;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nx">shim</span> <span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s1">&#39;angular&#39;</span> <span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">exports</span> <span class="o">:</span> <span class="s1">&#39;angular&#39;</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="s1">&#39;angularUiRouter&#39;</span> <span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">deps</span> <span class="o">:</span> <span class="p">[</span><span class="s1">&#39;angular&#39;</span><span class="p">]</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="s1">&#39;angularAnimate&#39;</span> <span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">deps</span> <span class="o">:</span> <span class="p">[</span><span class="s1">&#39;angular&#39;</span><span class="p">]</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="s1">&#39;angularSanitize&#39;</span> <span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">deps</span> <span class="o">:</span> <span class="p">[</span><span class="s1">&#39;angular&#39;</span><span class="p">]</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>feature folder</h3>
+
+<p>For the purpose of the explanation let&rsquo;s call this feature folder <code>area</code>. <br/>
+Before we review how we can start the application, let&rsquo;s first see how a feature is organized.</p>
+
+<p>For each feature we will define a folder containing the following:</p>
+
+<h4>area/namespace.js</h4>
+
+<p>This file is a returning the namespace of the feature.</p>
+
+<figure class='code'><figcaption><span>scripts/app/area/namespace.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([],</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="s2">&quot;area&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that I usually put in the app folder a root namespace looking like this:</p>
+
+<figure class='code'><figcaption><span>scripts/app/namespace.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([],</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="s2">&quot;myApp&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the namespace.js of a specific feature i can require this top root namespace to chain the namespaces.
+area/namespace.js becomes:</p>
+
+<figure class='code'><figcaption><span>scripts/app/area/namespace.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([</span>
+</span><span class='line'>    <span class="s1">&#39;../namespace&#39;</span>  <span class="c1">// we are requiring here the top root namespace</span>
+</span><span class='line'><span class="p">],</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">namespace</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nx">namespace</span> <span class="o">+</span> <span class="s2">&quot;.area&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I find this elegant because the actual name of the namespace are only hard coded once. I could decide later on to change the namespace and this will not impact any other part of the application&hellip;</p>
+
+<p>Next to namespace.js we define 2 others files : <code>module.js</code> and <code>module.require.js</code>. <br/>
+<code>module.js</code> simply defines a specific module for the feature:</p>
+
+<figure class='code'><figcaption><span>scripts/app/area/module.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([</span>
+</span><span class='line'>        <span class="s1">&#39;angular&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;./namespace&#39;</span>
+</span><span class='line'><span class="p">],</span>
+</span><span class='line'>    <span class="kd">function</span> <span class="p">(</span><span class="nx">angular</span><span class="p">,</span> <span class="nx">namespace</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="nx">namespace</span><span class="p">,</span> <span class="p">[]);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>See how we reference the namespace for the feature instead of duplicating the hard coded namespace.</p>
+
+<p><code>module.require.js</code> is the file responsible for binding together all the files we will put in our feature module (filters, directives, services, controllers, etc&hellip;) <br/>
+To achieve a clean separation between those files, we will create sub folders per nature inside the feature folder:</p>
+
+<figure class='code'><figcaption><span>flder structure</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'>configs/
+</span><span class='line'>constants/
+</span><span class='line'>controllers/
+</span><span class='line'>directives/
+</span><span class='line'>filters/
+</span><span class='line'>services/
+</span><span class='line'>templates/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Each of these sub folders contains a file per component, plus an <code>_index.js</code> file referencing all of them. <br/>
+To better understand let see how the services folder looks like:</p>
+
+<h4>area/services/_index.js</h4>
+
+<figure class='code'><figcaption><span>scripts/app/area/services/_index.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([</span>
+</span><span class='line'>    <span class="s1">&#39;./myService&#39;</span>
+</span><span class='line'><span class="p">],</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>area/services/myService.js</h4>
+
+<figure class='code'><figcaption><span>scripts/app/area/services/myService.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([</span>
+</span><span class='line'>        <span class="s1">&#39;../module&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;../namespace&#39;</span>
+</span><span class='line'>    <span class="p">],</span>
+</span><span class='line'>    <span class="kd">function</span> <span class="p">(</span><span class="nx">module</span><span class="p">,</span> <span class="nx">namespace</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">var</span> <span class="nx">name</span> <span class="o">=</span> <span class="nx">namespace</span> <span class="o">+</span> <span class="s2">&quot;.myService&quot;</span><span class="p">;</span>
+</span><span class='line'>        <span class="kd">var</span> <span class="nx">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$log&#39;</span><span class="p">];</span>
+</span><span class='line'>        <span class="kd">var</span> <span class="nx">service</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">$log</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>                <span class="nx">add</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">v1</span><span class="p">,</span> <span class="nx">v2</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                    <span class="nx">$log</span><span class="p">.</span><span class="nx">debug</span><span class="p">(</span><span class="s2">&quot;add function&quot;</span><span class="p">);</span>
+</span><span class='line'>                    <span class="k">return</span> <span class="nx">v1</span> <span class="o">+</span> <span class="nx">v2</span><span class="p">;</span>
+</span><span class='line'>                <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="p">};</span>
+</span><span class='line'>        <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nx">module</span><span class="p">.</span><span class="nx">factory</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nx">dependencies</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">service</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that we are again referencing the namespace in order to prefix the name of the service with it. <br/>
+If you do not want your service to be in a specific namespace you can just ignore that and write:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">name</span> <span class="o">=</span> <span class="s2">&quot;myService&quot;</span><span class="p">;</span> <span class="c1">// instead of var name = namespace + &quot;.myService&quot;;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>area/module.require.js</h4>
+
+<p>This file simply references all the _index.js per component type</p>
+
+<figure class='code'><figcaption><span>scripts/app/area/module.require.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([</span>
+</span><span class='line'>    <span class="s1">&#39;./configs/_index&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;./constants/_index&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;./controllers/_index&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;./directives/_index&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;./filters/_index&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;./services/_index&#39;</span>
+</span><span class='line'><span class="p">],</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now lets starts our application.
+We will need an app.js file in <code>scripts/app</code></p>
+
+<figure class='code'><figcaption><span>scripts/app/app.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">define</span><span class="p">([</span>
+</span><span class='line'>        <span class="s1">&#39;angular&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;./namespace&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;./area/namespace&#39;</span><span class="p">,</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="s1">&#39;./area/module.require&#39;</span>
+</span><span class='line'>    <span class="p">],</span>
+</span><span class='line'>    <span class="kd">function</span> <span class="p">(</span><span class="nx">angular</span><span class="p">,</span> <span class="nx">namespace</span><span class="p">,</span> <span class="nx">namespaceArea</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="nx">namespace</span><span class="p">,</span> <span class="p">[</span>
+</span><span class='line'>            <span class="nx">namespaceArea</span>
+</span><span class='line'>        <span class="p">]).</span><span class="nx">run</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>            <span class="c1">//</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">app</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We are requiring the feature <code>module.require.js</code> file to make sure all the files making the feature are loaded. And in addition we are also referencing the namespace of the application and the namespace of the feature in order to prevent hard coding again their values.</p>
+
+<p>The only thing left is to bind <code>main.js</code> with <code>app.js</code> using the following code
+at the end of <code>main.js</code></p>
+
+<figure class='code'><figcaption><span>scripts/main.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">require</span><span class="p">([</span>
+</span><span class='line'>        <span class="s1">&#39;angular&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;app/namespace&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s1">&#39;app/app&#39;</span>
+</span><span class='line'>    <span class="p">],</span>
+</span><span class='line'>    <span class="kd">function</span> <span class="p">(</span><span class="nx">angular</span><span class="p">,</span> <span class="nx">namespace</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">angular</span><span class="p">.</span><span class="nx">element</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>             <span class="nx">angular</span><span class="p">.</span><span class="nx">bootstrap</span><span class="p">(</span><span class="nb">document</span><span class="p">,</span> <span class="p">[</span><span class="nx">namespace</span><span class="p">]);</span>
+</span><span class='line'>       <span class="p">});</span>
+</span><span class='line'>    <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This may seem over complicated, but once you understand how it works it is really easy to expand.
+Each time i need a new &ldquo;feature&rdquo;, i&rsquo;m copying a dummy feature structure, set the namespace, and reference the module.require of the feature in the main <code>app.js</code>.
+Whenever i need a new component inside the feature, i put it in the correct location based on its type, and edit the corresponding <code>_index.js</code>.</p>
+
+<p>To better illustrate these concepts you can look at this <a href="https://github.com/thaiat/directory-angular-ionic-require">repository</a>. <br/>
+Live demo is available here : <a href="http://thaiat.github.io/directory-angular-ionic-require">http://thaiat.github.io/directory-angular-ionic-require</a></p>
+
+<p>I have re-written the Sample Mobile Application of Christophe Coenraets using these technics (see <a href="http://coenraets.org/blog/2014/02/sample-mobile-application-with-ionic-and-angularjs/">http://coenraets.org/blog/2014/02/sample-mobile-application-with-ionic-and-angularjs/</a>)</p>
+
+<p>Let me know what you think and happy coding.</p>
+
+<p>Avi Haiat</p>
 ]]></content>
   </entry>
   

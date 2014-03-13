@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Requirejs | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/requirejs/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T17:24:03+02:00</updated>
+  <updated>2014-03-13T18:01:52+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -311,6 +311,364 @@ link: function (scope, iElm, iAttrs, controller) {
 <p>Avi</p>
 
 <p>PS: Big thanks to Nir Kaufman that helped me figure it out.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Angularjs and Requirejs for Very Large Applications]]></title>
+    <link href="http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications/"/>
+    <updated>2014-02-26T10:14:06+02:00</updated>
+    <id>http://thaiat.github.io/blog/2014/02/26/angularjs-and-requirejs-for-very-large-applications</id>
+    <content type="html"><![CDATA[<blockquote><p><strong>NOTE:</strong> <br/>
+This article assumes that you are familiar with both <code>requirejs</code> and <code>angularjs</code></p></blockquote>
+
+<p>Live demo is available here : <a href="http://thaiat.github.io/directory-angular-ionic-require">http://thaiat.github.io/directory-angular-ionic-require</a></p>
+
+<p>Hi all,</p>
+
+<p>I&rsquo;ve been working with <code>angularjs</code> for the past 3 months.</p>
+
+<p>I like very much the framework, but i had a few issues with what would be the best way to organize the code when writing a large application. Especially i didn&rsquo;t like editing the index.html each time i would write a new directive, controller or service. So i looked at <code>requirejs</code> and started to think how the 2 libraries would play together.</p>
+
+<p>In a nutshell here is my attempt to combine both <code>angularjs</code> and <code>requirejs</code>. <br/>
+Some may argue that this is unnecessary, but i wanted to explain my approach and see what is the feedback. <br/>
+The main reason i needed that is that i&rsquo;m still using Visual Studio as my editor (yes&hellip; i know&hellip;).
+Running the unit test with jasmine in Visual Studio works without an html page, so i needed a way with pure javascript files to link together all my unit tests. <code>requirejs</code> does exactly that&hellip;</p>
+
+<p>So, first, let&rsquo;s see the file structure.</p>
+
+<h2>File and folder structure</h2>
+
+<p>As per the best practices in angular, i wanted to organize my code by features. <br/>
+So the folder structure looks like this:</p>
+
+<p>```bat folder structure
+index.html
+scripts/
+   main.js <br/>
+   app/</p>
+
+<pre><code>  area1/   
+  area2/   
+</code></pre>
+
+<p>   libs/</p>
+
+<pre><code>  angular/   
+  ionic/   
+  require/   
+</code></pre>
+
+<p>styles/
+   font-awesome/
+   main.css  <br/>
+```</p>
+
+<p>At the root we have scripts and styles, nothing surprising there.
+In the subfolder <code>scripts/libs</code>, i usually put all the external javascript libraries. <br/>
+I like to create a subfolder underneath which is named as the current version number of the library (x.y.z).</p>
+
+<p>For example:
+```bat folder structure
+libs/
+   angular/</p>
+
+<pre><code>  1.2.9/
+       angular-animate.js
+       angular-animate.min.js
+       angular-cookies.js
+       .....
+</code></pre>
+
+<p>```</p>
+
+<p>This makes it super easy to try a new version of the library and see if it works, while falling back to the previous one if the new version generates too many bugs.</p>
+
+<p>Right at the root we have the <code>index.html</code>. <br/>
+Here is the code:
+```html index.html
+<html></p>
+
+<pre><code>&lt;head&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /&gt;
+    &lt;link href="styles/main.css" rel="stylesheet" /&gt;
+
+    &lt;title&gt;Hello World&lt;/title&gt;
+
+&lt;/head&gt;
+
+&lt;body&gt;
+
+    &lt;script src="scripts/libs/require/2.1.10/require.js" data-main="scripts/main"&gt; &lt;/script&gt;
+&lt;/body&gt;
+</code></pre>
+
+<p></html>
+```</p>
+
+<p>As you can see it is also very simple. <br/>
+It references the needed css, and has only a single script tag, pointing to <code>requirejs</code> and defining <code>scripts/main.js</code> as the entry point for the application.</p>
+
+<blockquote><p><strong>NOTE:</strong> <br/>
+Note that the <code>.js</code> extension is omitted when referencing a javascript file with <code>requirejs</code></p></blockquote>
+
+<h3>main.js</h3>
+
+<p>This file first defines the libraries needed by the application. We will see later on how we start the application using require entry point function.</p>
+
+<p>So for the moment the content is pretty simple:
+```javascript scripts/main.js
+require.config({</p>
+
+<pre><code>  paths : {
+    'angular' : 'libs/angular/1.2.9/angular',
+    'angularUiRouter' : 'libs/angular/angular-ui/0.2.8/angular-ui-router',
+    'angularSanitize' : 'libs/angular/1.2.9/angular-sanitize',
+    'angularAnimate' : 'libs/angular/1.2.9/angular-animate'
+
+},
+shim : {
+    'angular' : {
+        exports : 'angular'
+    },
+    'angularUiRouter' : {
+        deps : ['angular']
+    },
+    'angularAnimate' : {
+        deps : ['angular']
+    },
+    'angularSanitize' : {
+        deps : ['angular']
+    }
+
+}
+</code></pre>
+
+<p>});</p>
+
+<p>```</p>
+
+<h3>feature folder</h3>
+
+<p>For the purpose of the explanation let&rsquo;s call this feature folder <code>area</code>. <br/>
+Before we review how we can start the application, let&rsquo;s first see how a feature is organized.</p>
+
+<p>For each feature we will define a folder containing the following:</p>
+
+<h4>area/namespace.js</h4>
+
+<p>This file is a returning the namespace of the feature.
+```javascript scripts/app/area/namespace.js
+define([], function () {</p>
+
+<pre><code>'use strict';
+return "area";
+</code></pre>
+
+<p>});
+```</p>
+
+<p>Note that I usually put in the app folder a root namespace looking like this:
+```javascript scripts/app/namespace.js
+define([], function () {</p>
+
+<pre><code>return "myApp";
+</code></pre>
+
+<p>});
+```</p>
+
+<p>In the namespace.js of a specific feature i can require this top root namespace to chain the namespaces.
+area/namespace.js becomes:
+```javascript scripts/app/area/namespace.js
+define([</p>
+
+<pre><code>'../namespace'  // we are requiring here the top root namespace
+</code></pre>
+
+<p>], function (namespace) {</p>
+
+<pre><code>'use strict';
+return namespace + ".area";
+</code></pre>
+
+<p>});
+```</p>
+
+<p>I find this elegant because the actual name of the namespace are only hard coded once. I could decide later on to change the namespace and this will not impact any other part of the application&hellip;</p>
+
+<p>Next to namespace.js we define 2 others files : <code>module.js</code> and <code>module.require.js</code>. <br/>
+<code>module.js</code> simply defines a specific module for the feature:</p>
+
+<p>```javascript scripts/app/area/module.js
+define([</p>
+
+<pre><code>    'angular',
+    './namespace'
+</code></pre>
+
+<p>],</p>
+
+<pre><code>function (angular, namespace) {
+    'use strict';
+
+    return angular.module(namespace, []);
+
+});
+</code></pre>
+
+<p>```</p>
+
+<p>See how we reference the namespace for the feature instead of duplicating the hard coded namespace.</p>
+
+<p><code>module.require.js</code> is the file responsible for binding together all the files we will put in our feature module (filters, directives, services, controllers, etc&hellip;) <br/>
+To achieve a clean separation between those files, we will create sub folders per nature inside the feature folder:</p>
+
+<p><code>bat flder structure
+configs/
+constants/
+controllers/
+directives/
+filters/
+services/
+templates/
+</code></p>
+
+<p>Each of these sub folders contains a file per component, plus an <code>_index.js</code> file referencing all of them. <br/>
+To better understand let see how the services folder looks like:</p>
+
+<h4>area/services/_index.js</h4>
+
+<p>```javascript scripts/app/area/services/_index.js
+define([</p>
+
+<pre><code>'./myService'
+</code></pre>
+
+<p>], function () {</p>
+
+<pre><code>'use strict';
+</code></pre>
+
+<p>});
+```</p>
+
+<h4>area/services/myService.js</h4>
+
+<p>```javascript scripts/app/area/services/myService.js
+define([</p>
+
+<pre><code>    '../module',
+    '../namespace'
+],
+function (module, namespace) {
+    'use strict';
+
+    var name = namespace + ".myService";
+    var dependencies = ['$log'];
+    var service = function ($log) {
+        return {
+            add : function (v1, v2) {
+                $log.debug("add function");
+                return v1 + v2;
+            }
+
+        };
+    };
+
+    module.factory(name, dependencies.concat(service));
+});
+</code></pre>
+
+<p>```</p>
+
+<p>Note that we are again referencing the namespace in order to prefix the name of the service with it. <br/>
+If you do not want your service to be in a specific namespace you can just ignore that and write:
+<code>javascript
+var name = "myService"; // instead of var name = namespace + ".myService";
+</code></p>
+
+<h4>area/module.require.js</h4>
+
+<p>This file simply references all the _index.js per component type</p>
+
+<p>```javascript scripts/app/area/module.require.js
+define([</p>
+
+<pre><code>'./configs/_index',
+'./constants/_index',
+'./controllers/_index',
+'./directives/_index',
+'./filters/_index',
+'./services/_index'
+</code></pre>
+
+<p>], function () {</p>
+
+<pre><code>'use strict';
+</code></pre>
+
+<p>});
+```</p>
+
+<p>Now lets starts our application.
+We will need an app.js file in <code>scripts/app</code>
+```javascript scripts/app/app.js
+define([</p>
+
+<pre><code>    'angular',
+    './namespace',
+    './area/namespace',
+
+    './area/module.require'
+],
+function (angular, namespace, namespaceArea) {
+    'use strict';
+
+    var app = angular.module(namespace, [
+        namespaceArea
+    ]).run(function () {
+        //
+    });
+    return app;
+});
+</code></pre>
+
+<p>```</p>
+
+<p>We are requiring the feature <code>module.require.js</code> file to make sure all the files making the feature are loaded. And in addition we are also referencing the namespace of the application and the namespace of the feature in order to prevent hard coding again their values.</p>
+
+<p>The only thing left is to bind <code>main.js</code> with <code>app.js</code> using the following code
+at the end of <code>main.js</code></p>
+
+<p>```javascript scripts/main.js
+require([</p>
+
+<pre><code>    'angular',
+    'app/namespace',
+    'app/app'
+],
+function (angular, namespace) {
+    angular.element(document).ready(function() {
+         angular.bootstrap(document, [namespace]);
+   });
+});
+</code></pre>
+
+<p>```</p>
+
+<p>This may seem over complicated, but once you understand how it works it is really easy to expand.
+Each time i need a new &ldquo;feature&rdquo;, i&rsquo;m copying a dummy feature structure, set the namespace, and reference the module.require of the feature in the main <code>app.js</code>.
+Whenever i need a new component inside the feature, i put it in the correct location based on its type, and edit the corresponding <code>_index.js</code>.</p>
+
+<p>To better illustrate these concepts you can look at this <a href="https://github.com/thaiat/directory-angular-ionic-require">repository</a>. <br/>
+Live demo is available here : <a href="http://thaiat.github.io/directory-angular-ionic-require">http://thaiat.github.io/directory-angular-ionic-require</a></p>
+
+<p>I have re-written the Sample Mobile Application of Christophe Coenraets using these technics (see <a href="http://coenraets.org/blog/2014/02/sample-mobile-application-with-ionic-and-angularjs/">http://coenraets.org/blog/2014/02/sample-mobile-application-with-ionic-and-angularjs/</a>)</p>
+
+<p>Let me know what you think and happy coding.</p>
+
+<p>Avi Haiat</p>
 ]]></content>
   </entry>
   
