@@ -7,7 +7,7 @@ categories: [git, github, github pages, octopress, blog]
 ---
 A quick and easy 6 steps tutorial to get up and running with octopress and github pages
 
->**NOTE:**   
+>**NOTE:**
 > As a pre-requisite you should make sure you have a public github repo with the name : `yourusername.github.io`
 
 ### Step 1: Install Chocolatey
@@ -16,8 +16,8 @@ A quick and easy 6 steps tutorial to get up and running with octopress and githu
 3. cd to `c:\`
 4. Paste in and execute the following code from chocolatey home page
 ```bat Install Chocolatey
-@powershell -NoProfile -ExecutionPolicy unrestricted -Command "iex 
-((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))" 
+@powershell -NoProfile -ExecutionPolicy unrestricted -Command "iex
+((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"
 && SET PATH=%PATH%;%systemdrive%\chocolatey\bin
 ```
 
@@ -35,22 +35,30 @@ git --version
 
 You should get `git version 1.0.0.msysgit.0`
 
-### Step 3 : Install Ruby
+### Step 3 : Install Ruby and Python
 1. Install `Ruby 1.9.3-p545` from `http://rubyinstaller.org`
 2. Ruby should be installed in `C:\Ruby193`
 3. Add the following path to the system variables Path : `c:\Ruby193\bin`
 4. Exit and reopen command prompt and run `ruby --version`, you should get `ruby 1.9.3-p545`
 5. Install ruby developpement kit with chocolatey
 
+   
 ```bat Install Ruby Devkit with Chocolatey
 c:
-choco install ruby.devkit 
+choco install ruby.devkit
 ```
+This will install the devkit in C:\Devkit   
+6. Install python
 
-This will install the devkit in `C:\Devkit`
+  
+```bat Install Python with Chocolatey
+choco install python
+``` 
+7. Exit and reopen command prompt and run `python --version`, you should get `Python 2.7.6`
+
 
 ### Step 4 : Install Octopress
-Navigate to your github local repositories folder (for example mine is d:\github)   
+Navigate to your github local repositories folder (for example mine is d:\github)
 The installation of Octopress consist in cloning the repository of Octopress
 ```bat Clone Octopress repository
 git clone git://github.com/imathis/octopress.git blog
@@ -62,7 +70,7 @@ gem install bundler
 bundle install
 ```
 
-Then install the default Octopress theme 
+Then install the default Octopress theme
 ```bat Install Octopress default theme
 rake install
 ```
@@ -83,14 +91,14 @@ rake new_post["Hello World Post No 1"]
 The new post file is a simple markdown file generated in `source\_posts`
 
 ### Step 6 : Publishing your blog to github pages
-Github pages expect to have two branches, the source branch and the master branch. The master branch is the one that github pages will show. The changes in the source branch won’t be published until you push your changes to master. You can configure those branchs manually and add your github pages repository as a remote, but there is also a rake task that does all for you: 
+Github pages expect to have two branches, the source branch and the master branch. The master branch is the one that github pages will show. The changes in the source branch won’t be published until you push your changes to master. You can configure those branchs manually and add your github pages repository as a remote, but there is also a rake task that does all for you:
 ```bat rake command for setting up github pages
 rake setup_github_pages[repo].
 ```
-In the case of this blog, I ran `rake setup_github_pages[git@github.com:yourusername/yourusername.github.io.git]` and then `rake deploy` to upload the blog.   
+In the case of this blog, I ran `rake setup_github_pages[git@github.com:yourusername/yourusername.github.io.git]` and then `rake deploy` to upload the blog.
 In a snap the blog will be accessible at the url http://yourusername.github.io.
 
-Remember that rake deploy just generates the blog a push to the master branch. Your source branch won’t be uploaded to github if you don’t want to. You probably want, to have a secure backup online, among other reason. Commit your changes and do 
+Remember that rake deploy just generates the blog a push to the master branch. Your source branch won’t be uploaded to github if you don’t want to. You probably want, to have a secure backup online, among other reason. Commit your changes and do
 ```bat pushing the sources
 git push origin source.
 ```
@@ -111,6 +119,6 @@ If you need to put images in your blog just place them in source\images and refe
 ```
 {% endraw %}
 
-Now you have no excuse not making a blog of your own...   
-Happy Coding   
+Now you have no excuse not making a blog of your own...
+Happy Coding
 Avi
