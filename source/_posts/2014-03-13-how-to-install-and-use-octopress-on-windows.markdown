@@ -119,6 +119,30 @@ If you need to put images in your blog just place them in source\images and refe
 ```
 {% endraw %}
 
+
+If you get an error from github when executing `rake deploy` saying that
+```bat
+! [rejected]        master -> master (non-fast-forward)
+error: failed to push some refs to 'https://github.com/user/user.github
+it'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+``` 
+Modify the Rakefile at the root of the project
+by replacing the following line:
+```
+system "git push origin #{deploy_branch}"
+```
+with
+```
+system "git push origin +#{deploy_branch}"
+```
+Try to deploy again and then revert back Rakefile to its original content
+
+
+
 Now you have no excuse not making a blog of your own...
 Happy Coding
 Avi
