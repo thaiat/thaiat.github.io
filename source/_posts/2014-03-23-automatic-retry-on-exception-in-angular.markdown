@@ -346,6 +346,12 @@ it("retry_with_valid_async_function_should_succeed", function (done) {
 That's it. Our service is fully unit tested (100% coverage!!!), and we can reuse it anywhere in our applications.
 
 
+The repository is available [here][1].   
+
+
 Let me know what you think and happy coding.
 
 Avi Haiat
+
+
+[1]: https://github.com/thaiat/angular-retry
