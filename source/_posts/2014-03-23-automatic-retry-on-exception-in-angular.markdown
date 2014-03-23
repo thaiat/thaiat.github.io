@@ -55,7 +55,7 @@ For the implementation of `sleep` we are going to generate our own promise, call
 ```javascript sleep function
 var sleep = function(interval) {
 	// check parameter
-	if(!(interval === parseFloat(interval)) && interval < 0)
+	if(!(interval === parseFloat(interval)) || interval < 0)
 		throw new Error("interval must be a positive float");
     
     var deferred = $q.defer();
@@ -68,7 +68,7 @@ var sleep = function(interval) {
     }, interval);
                
     return deferred.promise;
-}
+};
 ```
 
 Before we continue, let's write some unit tests to verify the implementation.
@@ -85,12 +85,13 @@ describe("Service : promiseService" , function() {
 
 	beforeEach(module("myApp"));
 
-	beforeEach(inject(function($injector))) {
-		service = $injector.get("promiseService");
-		$rootScope = $injector.get("$rootScope");
-  		$httpBackend = $injector.get("$httpBackend");
+	beforeEach(inject(function ($injector) {
+        service = $injector.get("promiseService");
+        $timeout = $injector.get("$timeout");
+        $rootScope = $injector.get("$rootScope");
+        $httpBackend = $injector.get("$httpBackend");
         $http = $injector.get("$http");
-	}));
+    }));
 
 	it("should_be_defined", function(){
         expect(service).toBeDefined();
