@@ -264,9 +264,9 @@ Hope this makes sense...
 
 Git repo : [https://github.com/thaiat/angular-extending-directive/tree/master/scripts][2]
 
-Happy coding.
+Let me know what you think and happy coding.
 
-Avi
+Avi Haiat
 
 PS: Big thanks to Nir Kaufman that helped me figure it out.
 

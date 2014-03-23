@@ -143,6 +143,8 @@ Try to deploy again and then revert back Rakefile to its original content
 
 
 
-Now you have no excuse not making a blog of your own...
-Happy Coding
-Avi
+Now you have no excuse not making a blog of your own...   
+
+Let me know what you think and happy coding.
+
+Avi Haiat

@@ -7,8 +7,8 @@ published: false
 categories: [gulp, deployment, grunt, automation]
 ---
 There is a new frontend build tool out there, and it is making some noise - gulp -.
-I thought I'd take a look and see if I could write a simple tutorial for Gulp.
-This post will take you from installation and getting set up through examples of real world build processes.
+I thought I'd take a look and see if I could write a simple tutorial using gulp.
+This post will take you from installing gulp and getting set up through examples of real world build processes.
 
 ```javascript Hello world gruntfile.js
 var gulp = require('gulp');
@@ -17,7 +17,7 @@ gulp.task('default', function() {
  console.log('Hello world.');
 });
 ```
-
+  
 
 ```javascript copying file
 var gulp = require('gulp');
@@ -108,3 +108,7 @@ gulp.task('watch', function() {
 // Define the default task as a sequence of the above tasks
 gulp.task('default', ['clean', 'scripts', 'imagemin ', 'copy']);
 ```
+
+Let me know what you think and happy coding.
+
+Avi Haiat
