@@ -4,7 +4,7 @@
   <title><![CDATA[Category: unit test | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/unit-test/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-23T18:58:17+02:00</updated>
+  <updated>2014-03-23T19:40:22+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -71,7 +71,7 @@ return {
 var sleep = function(interval) {</p>
 
 <pre><code>// check parameter
-if(!(interval === parseFloat(interval)) &amp;&amp; interval &lt; 0)
+if(!(interval === parseFloat(interval)) || interval &lt; 0)
     throw new Error("interval must be a positive float");
 
 var deferred = $q.defer();
@@ -86,7 +86,7 @@ setTimeout(function () {
 return deferred.promise;
 </code></pre>
 
-<p>}
+<p>};
 ```</p>
 
 <p>Before we continue, let&rsquo;s write some unit tests to verify the implementation.
@@ -104,8 +104,9 @@ var $http;
 
 beforeEach(module("myApp"));
 
-beforeEach(inject(function($injector))) {
+beforeEach(inject(function ($injector) {
     service = $injector.get("promiseService");
+    $timeout = $injector.get("$timeout");
     $rootScope = $injector.get("$rootScope");
     $httpBackend = $injector.get("$httpBackend");
     $http = $injector.get("$http");

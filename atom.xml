@@ -4,7 +4,7 @@
   <title><![CDATA[Coding Experience]]></title>
   <link href="http://thaiat.github.io/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-23T18:58:17+02:00</updated>
+  <updated>2014-03-23T19:40:22+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -110,7 +110,7 @@ In addition to <code>sleep</code>, we will expose 2 other functions <code>toAsyn
 <span class='line-number'>16</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">sleep</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">interval</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>  <span class="c1">// check parameter</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">interval</span> <span class="o">===</span> <span class="nb">parseFloat</span><span class="p">(</span><span class="nx">interval</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">interval</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">interval</span> <span class="o">===</span> <span class="nb">parseFloat</span><span class="p">(</span><span class="nx">interval</span><span class="p">))</span> <span class="o">||</span> <span class="nx">interval</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
 </span><span class='line'>      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;interval must be a positive float&quot;</span><span class="p">);</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="kd">var</span> <span class="nx">deferred</span> <span class="o">=</span> <span class="nx">$q</span><span class="p">.</span><span class="nx">defer</span><span class="p">();</span>
@@ -123,7 +123,7 @@ In addition to <code>sleep</code>, we will expose 2 other functions <code>toAsyn
 </span><span class='line'>    <span class="p">},</span> <span class="nx">interval</span><span class="p">);</span>
 </span><span class='line'>
 </span><span class='line'>    <span class="k">return</span> <span class="nx">deferred</span><span class="p">.</span><span class="nx">promise</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -173,6 +173,7 @@ In addition, if your implementation uses setTimeout, you add a call to <code>$ro
 <span class='line-number'>39</span>
 <span class='line-number'>40</span>
 <span class='line-number'>41</span>
+<span class='line-number'>42</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">describe</span><span class="p">(</span><span class="s2">&quot;Service : promiseService&quot;</span> <span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
 </span><span class='line'>  <span class="kd">var</span> <span class="nx">service</span><span class="p">;</span>
 </span><span class='line'>  <span class="kd">var</span> <span class="nx">$rootScope</span><span class="p">;</span>
@@ -181,12 +182,13 @@ In addition, if your implementation uses setTimeout, you add a call to <code>$ro
 </span><span class='line'>
 </span><span class='line'>  <span class="nx">beforeEach</span><span class="p">(</span><span class="nx">module</span><span class="p">(</span><span class="s2">&quot;myApp&quot;</span><span class="p">));</span>
 </span><span class='line'>
-</span><span class='line'>  <span class="nx">beforeEach</span><span class="p">(</span><span class="nx">inject</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">$injector</span><span class="p">)))</span> <span class="p">{</span>
-</span><span class='line'>      <span class="nx">service</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;promiseService&quot;</span><span class="p">);</span>
-</span><span class='line'>      <span class="nx">$rootScope</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$rootScope&quot;</span><span class="p">);</span>
-</span><span class='line'>          <span class="nx">$httpBackend</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$httpBackend&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nx">beforeEach</span><span class="p">(</span><span class="nx">inject</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">$injector</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">service</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;promiseService&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">$timeout</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$timeout&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">$rootScope</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$rootScope&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">$httpBackend</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$httpBackend&quot;</span><span class="p">);</span>
 </span><span class='line'>        <span class="nx">$http</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$http&quot;</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}));</span>
+</span><span class='line'>    <span class="p">}));</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;should_be_defined&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
 </span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">service</span><span class="p">).</span><span class="nx">toBeDefined</span><span class="p">();</span>
