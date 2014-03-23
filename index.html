@@ -9,7 +9,7 @@
   <meta name="author" content="Avi Haiat">
 
   
-  <meta name="description" content="A quick and easy 6 steps tutorial to get up and running with octopress and github pages NOTE: As a pre-requisite you should make sure you have a &hellip;">
+  <meta name="description" content="Every so often, you run across some action, which just fails, where the best response it to just try it again. This is particularly true when dealing &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,6 +21,7 @@
   <link rel="canonical" href="http://thaiat.github.io/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/stylesheets/data-table.css" media="screen, projection" rel="stylesheet" type="text/css" />
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="/javascripts/ender.js"></script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
@@ -91,6 +92,662 @@
   <header>
     
       <!-- Now we're back to normal posts. Note the links used under href in both headers.-->
+        <h1 class="entry-title"><a href="/blog/2014/03/23/automatic-retry-on-exception-in-angular/">Automatic Retry on Exception in Angular</a></h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-23T15:01:11+02:00" pubdate data-updated="true">Mar 23<span>rd</span>, 2014</time>
+        
+         | <a href="/blog/2014/03/23/automatic-retry-on-exception-in-angular/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Every so often, you run across some action, which just fails, where the best response it to just try it again. This is particularly true when dealing with an external source, like a database or web service, which can have network or other temporary problems, which would have cleared up when you repeat the call seconds later.</p>
+
+<p>Often, these actions fail by throwing an exception which makes the process of trying the call again rather cumbersome. Having to deal with this a number of times in one application, I decided to wrap the full procedure up in an angular service, which I share here with you:</p>
+
+<h2>Sleep function</h2>
+
+<p>First we need to implement a <code>sleep</code> function, that will just wait for a specified interval of milliseconds while returning a promise.</p>
+
+<p>You would think that the best fit is to use <code>$timeout</code>.  <br/>
+The problem is, it has a bad impact on your unit tests&hellip;.
+The reason is, if you use <code>$timeout</code>, you will have at the end of your test to call <code>$timeout.flush()</code> as many times as <code>$timeout</code> was called in your implementation.</p>
+
+<p>Instead, if we use the standard javascript <code>setTimeout</code> function, we only have to call once <code>$rootScope.$apply()</code> at the end of our test and we&rsquo;re done.</p>
+
+<p>Let&rsquo;s start by defining our service with an empty implementation:
+In addition to <code>sleep</code>, we will expose 2 other functions <code>toAsync</code> and <code>retry</code>, that we&rsquo;ll explain later.</p>
+
+<figure class='code'><figcaption><span>promiseService.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">angular</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="s2">&quot;myApp&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;$q&#39;</span><span class="p">,</span> <span class="s1">&#39;$rootScope&#39;</span><span class="p">];</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">service</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">$q</span><span class="p">,</span> <span class="nx">$rootScope</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">sleep</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">toAsync</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">retry</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">sleep</span> <span class="o">:</span> <span class="nx">sleep</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">toAsync</span> <span class="o">:</span> <span class="nx">toAsync</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">retry</span> <span class="o">:</span> <span class="nx">retry</span>
+</span><span class='line'>  <span class="p">}</span>    
+</span><span class='line'>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">app</span><span class="p">.</span><span class="nx">factory</span><span class="p">(</span><span class="s2">&quot;promiseService&quot;</span><span class="p">,</span> <span class="nx">dependencies</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">service</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For the implementation of <code>sleep</code> we are going to generate our own promise, call <code>setTimeout</code>, and not forget to wrap the callback in a <code>$rootScope.$apply()</code> call.</p>
+
+<figure class='code'><figcaption><span>sleep function</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">sleep</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">interval</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// check parameter</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">interval</span> <span class="o">===</span> <span class="nb">parseFloat</span><span class="p">(</span><span class="nx">interval</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">interval</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;interval must be a positive float&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">deferred</span> <span class="o">=</span> <span class="nx">$q</span><span class="p">.</span><span class="nx">defer</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// sleep</span>
+</span><span class='line'>    <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>          <span class="nx">deferred</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">interval</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>    <span class="p">},</span> <span class="nx">interval</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="nx">deferred</span><span class="p">.</span><span class="nx">promise</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Before we continue, let&rsquo;s write some unit tests to verify the implementation.
+I&rsquo;m using here <strong>jasmine 2.0</strong> which comes with a new syntax for async testing. <br/>
+It&rsquo;s pretty simple : when testing an async function (aka a promise), you add a <code>done</code> parameter to your <code>it</code>, and you call <code>done()</code> when the promise returns some result.
+In addition, if your implementation uses setTimeout, you add a call to <code>$rootScope.$apply()</code></p>
+
+<figure class='code'><figcaption><span>promiseService.tests.js</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">describe</span><span class="p">(</span><span class="s2">&quot;Service : promiseService&quot;</span> <span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">service</span><span class="p">;</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">$rootScope</span><span class="p">;</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">$httpbackend</span><span class="p">;</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">$http</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">beforeEach</span><span class="p">(</span><span class="nx">module</span><span class="p">(</span><span class="s2">&quot;myApp&quot;</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">beforeEach</span><span class="p">(</span><span class="nx">inject</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">$injector</span><span class="p">)))</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">service</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;promiseService&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">$rootScope</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$rootScope&quot;</span><span class="p">);</span>
+</span><span class='line'>          <span class="nx">$httpBackend</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$httpBackend&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">$http</span> <span class="o">=</span> <span class="nx">$injector</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;$http&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}));</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;should_be_defined&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">service</span><span class="p">).</span><span class="nx">toBeDefined</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;sleep_with_not_integer_interval_should_throw_exception&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">service</span><span class="p">.</span><span class="nx">sleep</span><span class="p">(</span><span class="s2">&quot;invalid&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}).</span><span class="nx">toThrow</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;interval must be a positive float&quot;</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;sleep_with_not_positive_integer_interval_should_throw_exception&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">service</span><span class="p">.</span><span class="nx">sleep</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}).</span><span class="nx">toThrow</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;interval must be a positive float&quot;</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">it</span><span class="p">(</span><span class="s2">&quot;sleep_with_positive_integer_interval_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kd">var</span> <span class="nx">interval</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+</span><span class='line'>        <span class="nx">service</span><span class="p">.</span><span class="nx">sleep</span><span class="p">(</span><span class="nx">interval</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">expect</span><span class="p">(</span><span class="nx">result</span><span class="p">).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">interval</span><span class="p">);</span>
+</span><span class='line'>            <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>        <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We have a fully tested <code>sleep</code> function.</p>
+
+<h2>toAsync function</h2>
+
+<p>The next function that we need to write is a function that will transform a passed function into a promise.
+That way we can retry on fail, either standard functions, or promises.
+The trick here, if you want your unit test to pass, is to encapsulate the call to the passed function in a try catch block.
+It is similar to <code>$q.when</code>, but instead of passing a value or a promise, we pass a function or a promise.</p>
+
+<figure class='code'><figcaption><span>toAsync</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'> <span class="kd">var</span> <span class="nx">toAsync</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">action</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">action</span> <span class="o">!==</span> <span class="s2">&quot;function&quot;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;action must be a function&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">deferred</span> <span class="o">=</span> <span class="nx">$q</span><span class="p">.</span><span class="nx">defer</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">try</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kd">var</span> <span class="nx">retval</span> <span class="o">=</span> <span class="nx">action</span><span class="p">();</span>
+</span><span class='line'>        <span class="nx">deferred</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">retval</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">catch</span> <span class="p">(</span><span class="nx">ex</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">deferred</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="nx">ex</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nx">deferred</span><span class="p">.</span><span class="nx">promise</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And the unit tests :</p>
+
+<figure class='code'><figcaption><span>toAsync unit tests</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;toAsync_with_invalid_parameter_function_should_throw_exception&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">expect</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">service</span><span class="p">.</span><span class="nx">toAsync</span><span class="p">(</span><span class="s2">&quot;invalid&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}).</span><span class="nx">toThrow</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;action must be a function&quot;</span><span class="p">));</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;toAsync_with_valid_sync_function_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">spyOn</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">,</span> <span class="s1">&#39;addOne&#39;</span><span class="p">).</span><span class="nx">and</span><span class="p">.</span><span class="nx">callThrough</span><span class="p">();</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">mockHelper</span><span class="p">.</span><span class="nx">addOne</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">service</span><span class="p">.</span><span class="nx">toAsync</span><span class="p">(</span><span class="nx">action</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">result</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="mi">101</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">addOne</span><span class="p">).</span><span class="nx">toHaveBeenCalledWith</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>    <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;toAsync_with_valid_async_function_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">spyOn</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">,</span> <span class="s1">&#39;getUrl&#39;</span><span class="p">).</span><span class="nx">and</span><span class="p">.</span><span class="nx">callThrough</span><span class="p">();</span>
+</span><span class='line'>    <span class="nx">$httpBackend</span><span class="p">.</span><span class="nx">when</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/dummy&#39;</span><span class="p">).</span><span class="nx">respond</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">dummyResponse</span><span class="p">);</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">mockHelper</span><span class="p">.</span><span class="nx">getUrl</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="nx">service</span><span class="p">.</span><span class="nx">toAsync</span><span class="p">(</span><span class="nx">action</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">getUrl</span><span class="p">).</span><span class="nx">toHaveBeenCalled</span><span class="p">();</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">data</span><span class="p">).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">dummyResponse</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">$httpBackend</span><span class="p">.</span><span class="nx">flush</span><span class="p">();</span>
+</span><span class='line'>    <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;toAsync_with_faulty_sync_function_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">spyOn</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">,</span> <span class="s1">&#39;faultyFn&#39;</span><span class="p">).</span><span class="nx">and</span><span class="p">.</span><span class="nx">callThrough</span><span class="p">();</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="nx">service</span><span class="p">.</span><span class="nx">toAsync</span><span class="p">(</span><span class="nx">action</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">rejection</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">).</span><span class="nx">toHaveBeenCalled</span><span class="p">();</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">rejection</span><span class="p">.</span><span class="nx">message</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="s2">&quot;I&#39;m a faulty function&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>    <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">var</span> <span class="nx">mockHelper</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">faultyFn</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;I&#39;m a faulty function&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">addOne</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">value</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">getUrl</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">$http</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;/dummy&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">dummyResponse</span> <span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;content&quot;</span> <span class="o">:</span> <span class="s2">&quot;Hello World&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>mockHelper</code> object holds our unit test functions, so we can reuse and spy on them across the tests.
+This is usefull for checking how many times they are called and with which parameters.</p>
+
+<h2>retry function</h2>
+
+<p>This is the last piece of the puzzle.
+To be as generic as possible, our function will accept a set of parameters in order to control how many times we should retry on fail, the interval between each trial, and also an interval multiplicator if we want to add some extra delay between each trial.</p>
+
+<p>The implementation is straight forward, using the building blocks we previously wrote.
+In the first part we just do some argument checking, and assign default values.
+In the second part, we recursivly call resolver, which, execute the passed action, and if an expection is detected, do a <code>sleep</code> and retry.</p>
+
+<figure class='code'><figcaption><span>retry function</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">retry</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">action</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">retry</span><span class="p">.</span><span class="nx">DEFAULT_OPTIONS</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">maxRetry</span> <span class="o">:</span> <span class="mi">3</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">interval</span> <span class="o">:</span> <span class="mi">500</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">intervalMultiplicator</span> <span class="o">:</span> <span class="mf">1.5</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">action</span> <span class="o">!==</span> <span class="s2">&quot;function&quot;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;action must be a function&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">options</span> <span class="o">=</span> <span class="nx">retry</span><span class="p">.</span><span class="nx">DEFAULT_OPTIONS</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">k</span> <span class="k">in</span> <span class="nx">retry</span><span class="p">.</span><span class="nx">DEFAULT_OPTIONS</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="nx">retry</span><span class="p">.</span><span class="nx">DEFAULT_OPTIONS</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">k</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="p">(</span><span class="nx">k</span> <span class="k">in</span> <span class="nx">options</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>                <span class="nx">options</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span> <span class="o">=</span> <span class="nx">retry</span><span class="p">.</span><span class="nx">DEFAULT_OPTIONS</span><span class="p">[</span><span class="nx">k</span><span class="p">];</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">resolver</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">remainingTry</span><span class="p">,</span> <span class="nx">interval</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">toAsync</span><span class="p">(</span><span class="nx">action</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nx">remainingTry</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">result</span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="nx">sleep</span><span class="p">(</span><span class="nx">interval</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>              <span class="c1">// recursion</span>
+</span><span class='line'>                <span class="k">return</span> <span class="nx">resolver</span><span class="p">(</span><span class="nx">remainingTry</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">interval</span> <span class="o">*</span> <span class="nx">options</span><span class="p">.</span><span class="nx">intervalMultiplicator</span><span class="p">);</span>
+</span><span class='line'>            <span class="p">});</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nx">resolver</span><span class="p">(</span><span class="nx">options</span><span class="p">.</span><span class="nx">maxRetry</span><span class="p">,</span> <span class="nx">options</span><span class="p">.</span><span class="nx">interval</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here are the unit tests:</p>
+
+<figure class='code'><figcaption><span>retry function unit tests</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;retry_with_invalid_parameter_function_should_throw_exception&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">expect</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">service</span><span class="p">.</span><span class="nx">retry</span><span class="p">(</span><span class="s2">&quot;invalid&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}).</span><span class="nx">toThrow</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;action must be a function&quot;</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;retry_with_faulty_sync_function_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">spyOn</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">,</span> <span class="s1">&#39;faultyFn&#39;</span><span class="p">).</span><span class="nx">and</span><span class="p">.</span><span class="nx">callThrough</span><span class="p">();</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">promise</span> <span class="o">=</span> <span class="nx">service</span><span class="p">.</span><span class="nx">retry</span><span class="p">(</span><span class="nx">action</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">promise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">rejection</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">).</span><span class="nx">toHaveBeenCalled</span><span class="p">();</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">.</span><span class="nx">calls</span><span class="p">.</span><span class="nx">count</span><span class="p">()).</span><span class="nx">toBe</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">rejection</span><span class="p">.</span><span class="nx">message</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="s2">&quot;I&#39;m a faulty function&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>    <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;retry_with_faulty_sync_function_and_options_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">spyOn</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">,</span> <span class="s1">&#39;faultyFn&#39;</span><span class="p">).</span><span class="nx">and</span><span class="p">.</span><span class="nx">callThrough</span><span class="p">();</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">promise</span> <span class="o">=</span> <span class="nx">service</span><span class="p">.</span><span class="nx">retry</span><span class="p">(</span><span class="nx">action</span><span class="p">,</span> <span class="p">{</span><span class="nx">maxRetry</span> <span class="o">:</span> <span class="mi">5</span><span class="p">});</span>
+</span><span class='line'>    <span class="nx">promise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">rejection</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">).</span><span class="nx">toHaveBeenCalled</span><span class="p">();</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">faultyFn</span><span class="p">.</span><span class="nx">calls</span><span class="p">.</span><span class="nx">count</span><span class="p">()).</span><span class="nx">toBe</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">rejection</span><span class="p">.</span><span class="nx">message</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="s2">&quot;I&#39;m a faulty function&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>    <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;retry_with_valid_sync_function_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">spyOn</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">,</span> <span class="s1">&#39;addOne&#39;</span><span class="p">).</span><span class="nx">and</span><span class="p">.</span><span class="nx">callThrough</span><span class="p">();</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">mockHelper</span><span class="p">.</span><span class="nx">addOne</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">promise</span> <span class="o">=</span> <span class="nx">service</span><span class="p">.</span><span class="nx">retry</span><span class="p">(</span><span class="nx">action</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">promise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">result</span><span class="p">).</span><span class="nx">toBe</span><span class="p">(</span><span class="mi">101</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">addOne</span><span class="p">).</span><span class="nx">toHaveBeenCalled</span><span class="p">();</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">addOne</span><span class="p">.</span><span class="nx">calls</span><span class="p">.</span><span class="nx">count</span><span class="p">()).</span><span class="nx">toBe</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>    <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">it</span><span class="p">(</span><span class="s2">&quot;retry_with_valid_async_function_should_succeed&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">spyOn</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">,</span> <span class="s1">&#39;getUrl&#39;</span><span class="p">).</span><span class="nx">and</span><span class="p">.</span><span class="nx">callThrough</span><span class="p">();</span>
+</span><span class='line'>    <span class="nx">$httpBackend</span><span class="p">.</span><span class="nx">when</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/dummy&#39;</span><span class="p">).</span><span class="nx">respond</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">dummyResponse</span><span class="p">);</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nx">mockHelper</span><span class="p">.</span><span class="nx">getUrl</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">promise</span> <span class="o">=</span> <span class="nx">service</span><span class="p">.</span><span class="nx">retry</span><span class="p">(</span><span class="nx">action</span><span class="p">);</span>
+</span><span class='line'>    <span class="nx">promise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">getUrl</span><span class="p">).</span><span class="nx">toHaveBeenCalled</span><span class="p">();</span>
+</span><span class='line'>        <span class="nx">expect</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">data</span><span class="p">).</span><span class="nx">toEqual</span><span class="p">(</span><span class="nx">mockHelper</span><span class="p">.</span><span class="nx">dummyResponse</span><span class="p">);</span>
+</span><span class='line'>        <span class="nx">done</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'>    <span class="nx">$httpBackend</span><span class="p">.</span><span class="nx">flush</span><span class="p">();</span>
+</span><span class='line'>    <span class="nx">$rootScope</span><span class="p">.</span><span class="nx">$apply</span><span class="p">();</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&rsquo;s it. Our service is fully unit tested (100% coverage!!!), and we can reuse it anywhere in our applications.</p>
+
+<p>Let me know what you think and happy coding.</p>
+
+<p>Avi Haiat</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <!-- Now we're back to normal posts. Note the links used under href in both headers.-->
         <h1 class="entry-title"><a href="/blog/2014/03/13/how-to-install-and-use-octopress-on-windows/">How to Install and Use Octopress on Windows</a></h1>
       
     
@@ -119,7 +776,7 @@
 
   <div class="entry-content"><p>A quick and easy 6 steps tutorial to get up and running with octopress and github pages</p>
 
-<blockquote><p><strong>NOTE:</strong> <br/>
+<blockquote><p><strong>NOTE:</strong>
 As a pre-requisite you should make sure you have a public github repo with the name : <code>yourusername.github.io</code></p></blockquote>
 
 <h3>Step 1: Install Chocolatey</h3>
@@ -159,7 +816,7 @@ As a pre-requisite you should make sure you have a public github repo with the n
 
 <p>You should get <code>git version 1.0.0.msysgit.0</code></p>
 
-<h3>Step 3 : Install Ruby</h3>
+<h3>Step 3 : Install Ruby and Python</h3>
 
 <ol>
 <li>Install <code>Ruby 1.9.3-p545</code> from <code>http://rubyinstaller.org</code></li>
@@ -177,11 +834,20 @@ As a pre-requisite you should make sure you have a public github repo with the n
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>This will install the devkit in <code>C:\Devkit</code></p>
+<p>This will install the devkit in C:\Devkit <br/>
+6. Install python</p>
+
+<figure class='code'><figcaption><span>Install Python with Chocolatey</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'>choco install python
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+7. Exit and reopen command prompt and run <code>python --version</code>, you should get <code>Python 2.7.6</code></p>
 
 <h3>Step 4 : Install Octopress</h3>
 
-<p>Navigate to your github local repositories folder (for example mine is d:\github) <br/>
+<p>Navigate to your github local repositories folder (for example mine is d:\github)
 The installation of Octopress consist in cloning the repository of Octopress</p>
 
 <figure class='code'><figcaption><span>Clone Octopress repository</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -236,7 +902,7 @@ The installation of Octopress consist in cloning the repository of Octopress</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>In the case of this blog, I ran <code>rake setup_github_pages[git@github.com:yourusername/yourusername.github.io.git]</code> and then <code>rake deploy</code> to upload the blog. <br/>
+<p>In the case of this blog, I ran <code>rake setup_github_pages[git@github.com:yourusername/yourusername.github.io.git]</code> and then <code>rake deploy</code> to upload the blog.
 In a snap the blog will be accessible at the url <a href="http://yourusername.github.io.">http://yourusername.github.io.</a></p>
 
 <p>Remember that rake deploy just generates the blog a push to the master branch. Your source branch won’t be uploaded to github if you don’t want to. You probably want, to have a secure backup online, among other reason. Commit your changes and do</p>
@@ -266,9 +932,48 @@ In a snap the blog will be accessible at the url <a href="http://yourusername.gi
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Now you have no excuse not making a blog of your own&hellip; <br/>
-Happy Coding <br/>
-Avi</p>
+<p>If you get an error from github when executing <code>rake deploy</code> saying that</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'>! [rejected]        master -<span class="p">&gt;</span> <span class="n">master</span> (non-fast-forward)
+</span><span class='line'>error: failed to push some refs to &#39;https:<span class="n">//github.com/user/user.github</span>
+</span><span class='line'>it&#39;
+</span><span class='line'>hint: Updates were rejected because the tip of your current branch is behind
+</span><span class='line'>hint: its remote counterpart. Integrate the remote changes (e.g.
+</span><span class='line'>hint: <span class="s1">&#39;git pull ...&#39;</span>) before pushing again.
+</span><span class='line'>hint: See the <span class="s1">&#39;Note about fast-forwards&#39;</span> in <span class="s1">&#39;git push --help&#39;</span> <span class="k">for</span> details.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>
+Modify the Rakefile at the root of the project
+by replacing the following line:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'>system <span class="s2">&quot;git push origin #{deploy_branch}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>with</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bat'><span class='line'>system <span class="s2">&quot;git push origin +#{deploy_branch}&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Try to deploy again and then revert back Rakefile to its original content</p>
+
+<p>Now you have no excuse not making a blog of your own&hellip;</p>
+
+<p>Let me know what you think and happy coding.</p>
+
+<p>Avi Haiat</p>
 </div>
   
   
@@ -749,9 +1454,9 @@ Let&rsquo;s modify the first directive</p>
 
 <p>Git repo : <a href="https://github.com/thaiat/angular-extending-directive/tree/master/scripts">https://github.com/thaiat/angular-extending-directive/tree/master/scripts</a></p>
 
-<p>Happy coding.</p>
+<p>Let me know what you think and happy coding.</p>
 
-<p>Avi</p>
+<p>Avi Haiat</p>
 
 <p>PS: Big thanks to Nir Kaufman that helped me figure it out.</p>
 </div>
@@ -1270,6 +1975,10 @@ Live demo is available here : <a href="http://thaiat.github.io/directory-angular
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/23/automatic-retry-on-exception-in-angular/">Automatic Retry on Exception in Angular</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/03/13/how-to-install-and-use-octopress-on-windows/">How to Install and Use Octopress on Windows</a>
       </li>
     
@@ -1282,6 +1991,35 @@ Live demo is available here : <a href="http://thaiat.github.io/directory-angular
       </li>
     
   </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/thaiat">@thaiat</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'thaiat',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
 </section>
 
 
@@ -1314,6 +2052,15 @@ Live demo is available here : <a href="http://thaiat.github.io/directory-angular
 </script>
 
 
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
 
 

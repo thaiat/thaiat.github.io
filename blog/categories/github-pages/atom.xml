@@ -4,7 +4,7 @@
   <title><![CDATA[Category: github pages | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/github-pages/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T20:40:15+02:00</updated>
+  <updated>2014-03-23T18:38:45+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -20,7 +20,7 @@
     <id>http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows</id>
     <content type="html"><![CDATA[<p>A quick and easy 6 steps tutorial to get up and running with octopress and github pages</p>
 
-<blockquote><p><strong>NOTE:</strong> <br/>
+<blockquote><p><strong>NOTE:</strong>
 As a pre-requisite you should make sure you have a public github repo with the name : <code>yourusername.github.io</code></p></blockquote>
 
 <h3>Step 1: Install Chocolatey</h3>
@@ -53,7 +53,7 @@ git --version
 
 <p>You should get <code>git version 1.0.0.msysgit.0</code></p>
 
-<h3>Step 3 : Install Ruby</h3>
+<h3>Step 3 : Install Ruby and Python</h3>
 
 <ol>
 <li>Install <code>Ruby 1.9.3-p545</code> from <code>http://rubyinstaller.org</code></li>
@@ -67,13 +67,18 @@ git --version
 <p><code>bat Install Ruby Devkit with Chocolatey
 c:
 choco install ruby.devkit
-</code></p>
+</code>
+This will install the devkit in C:\Devkit <br/>
+6. Install python</p>
 
-<p>This will install the devkit in <code>C:\Devkit</code></p>
+<p><code>bat Install Python with Chocolatey
+choco install python
+</code>
+7. Exit and reopen command prompt and run <code>python --version</code>, you should get <code>Python 2.7.6</code></p>
 
 <h3>Step 4 : Install Octopress</h3>
 
-<p>Navigate to your github local repositories folder (for example mine is d:\github) <br/>
+<p>Navigate to your github local repositories folder (for example mine is d:\github)
 The installation of Octopress consist in cloning the repository of Octopress
 <code>bat Clone Octopress repository
 git clone git://github.com/imathis/octopress.git blog
@@ -112,7 +117,7 @@ The new post file is a simple markdown file generated in <code>source\_posts</co
 <code>bat rake command for setting up github pages
 rake setup_github_pages[repo].
 </code>
-In the case of this blog, I ran <code>rake setup_github_pages[git@github.com:yourusername/yourusername.github.io.git]</code> and then <code>rake deploy</code> to upload the blog. <br/>
+In the case of this blog, I ran <code>rake setup_github_pages[git@github.com:yourusername/yourusername.github.io.git]</code> and then <code>rake deploy</code> to upload the blog.
 In a snap the blog will be accessible at the url <a href="http://yourusername.github.io.">http://yourusername.github.io.</a></p>
 
 <p>Remember that rake deploy just generates the blog a push to the master branch. Your source branch won’t be uploaded to github if you don’t want to. You probably want, to have a secure backup online, among other reason. Commit your changes and do
@@ -140,9 +145,32 @@ git push origin source.
 </code>
 </p>
 
-<p>Now you have no excuse not making a blog of your own&hellip; <br/>
-Happy Coding <br/>
-Avi</p>
+<p>If you get an error from github when executing <code>rake deploy</code> saying that
+<code>bat
+! [rejected]        master -&gt; master (non-fast-forward)
+error: failed to push some refs to 'https://github.com/user/user.github
+it'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+</code>
+Modify the Rakefile at the root of the project
+by replacing the following line:
+<code>
+system "git push origin #{deploy_branch}"
+</code>
+with
+<code>
+system "git push origin +#{deploy_branch}"
+</code>
+Try to deploy again and then revert back Rakefile to its original content</p>
+
+<p>Now you have no excuse not making a blog of your own&hellip;</p>
+
+<p>Let me know what you think and happy coding.</p>
+
+<p>Avi Haiat</p>
 ]]></content>
   </entry>
   

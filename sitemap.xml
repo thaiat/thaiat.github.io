@@ -10,21 +10,27 @@
         <loc>
             http://thaiat.github.io/blog/2014/03/10/extending-an-existing-directive-in-angularjs/
         </loc>
-        <lastmod>2014-03-13T20:27:15+02:00</lastmod>
+        <lastmod>2014-03-23T14:53:16+02:00</lastmod>
     </url>
     <url>
         <loc>
             http://thaiat.github.io/blog/2014/03/13/how-to-install-and-use-octopress-on-windows/
         </loc>
-        <lastmod>2014-03-13T20:27:15+02:00</lastmod>
+        <lastmod>2014-03-23T14:53:16+02:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://thaiat.github.io/blog/2014/03/23/automatic-retry-on-exception-in-angular/
+        </loc>
+        <lastmod>2014-03-23T18:38:02+02:00</lastmod>
     </url>
     <url>
         <loc>http://thaiat.github.io/blog/archives/</loc>
-        <lastmod>2014-03-13T20:27:15+02:00</lastmod>
+        <lastmod>2014-03-23T18:38:02+02:00</lastmod>
     </url>
     <url>
         <loc>http://thaiat.github.io/</loc>
-        <lastmod>2014-03-13T20:27:15+02:00</lastmod>
+        <lastmod>2014-03-23T18:38:02+02:00</lastmod>
     </url>
     <url>
         <loc>http://thaiat.github.io/robots.txt</loc>

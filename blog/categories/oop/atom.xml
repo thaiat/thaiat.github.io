@@ -4,7 +4,7 @@
   <title><![CDATA[Category: oop | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/oop/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-13T20:40:15+02:00</updated>
+  <updated>2014-03-23T18:38:45+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -306,9 +306,9 @@ link: function (scope, iElm, iAttrs, controller) {
 
 <p>Git repo : <a href="https://github.com/thaiat/angular-extending-directive/tree/master/scripts">https://github.com/thaiat/angular-extending-directive/tree/master/scripts</a></p>
 
-<p>Happy coding.</p>
+<p>Let me know what you think and happy coding.</p>
 
-<p>Avi</p>
+<p>Avi Haiat</p>
 
 <p>PS: Big thanks to Nir Kaufman that helped me figure it out.</p>
 ]]></content>
