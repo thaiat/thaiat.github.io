@@ -22,7 +22,7 @@ Let's start by defining our service with an empty implementation:
 In addition to `sleep`, we will expose 2 other functions `toAsync` and `retry`, that we'll explain later.
 
 ```javascript promiseService.js
-var app = angular.module("myApp");
+var app = angular.module("myApp", []);
 
 var dependencies = ['$q', '$rootScope'];
 var service = function($q, $rootScope) {
