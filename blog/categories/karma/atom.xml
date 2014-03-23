@@ -4,7 +4,7 @@
   <title><![CDATA[Category: karma | Coding Experience]]></title>
   <link href="http://thaiat.github.io/blog/categories/karma/atom.xml" rel="self"/>
   <link href="http://thaiat.github.io/"/>
-  <updated>2014-03-23T19:40:22+02:00</updated>
+  <updated>2014-03-23T19:45:19+02:00</updated>
   <id>http://thaiat.github.io/</id>
   <author>
     <name><![CDATA[Avi Haiat]]></name>
@@ -397,6 +397,8 @@ $rootScope.$apply();
 ```</p>
 
 <p>That&rsquo;s it. Our service is fully unit tested (100% coverage!!!), and we can reuse it anywhere in our applications.</p>
+
+<p>The repository is available <a href="https://github.com/thaiat/angular-retry">here</a>.</p>
 
 <p>Let me know what you think and happy coding.</p>
 
