@@ -72,9 +72,20 @@ var sleep = function(interval) {
 ```
 
 Before we continue, let's write some unit tests to verify the implementation.
-I'm using here **jasmine 2.0** which comes with a new syntax for async testing.   
-It's pretty simple : when testing an async function (aka a promise), you add a `done` parameter to your `it`, and you call `done()` when the promise returns some result.
-In addition, if your implementation uses setTimeout, you add a call to `$rootScope.$apply()`
+I'm using here **jasmine 2.0** which comes with a new syntax for async testing. 
+
+We have 2 options here:  
+First we can use the new async syntax and It's pretty simple : when testing an async function (aka a promise), you add a `done` parameter to your `it`, and you call `done()` when the promise returns some result.
+In addition, if your implementation uses setTimeout, you add a call to `$rootScope.$apply()`. The caveat of this method is that the test will wait for the timeout to callback. So it is more an end to end test than an unit test.
+
+The second method, is to use the clock mockup provided by jasmine, that executes synchronously any code using `setTimeout` or `setInterval`.   
+It goes like this:
+
+* call `jasmine.clock().install()` in the `beforeEach`
+* call `jasmine.clock().tick(xxx)` in the test passing the time in milliseconds that should have elapsed
+* call `jasmine.clock().uninstall()` in the `afterEach`
+
+
 
 ```javascript promiseService.tests.js
 describe("Service : promiseService" , function() {
@@ -83,9 +94,9 @@ describe("Service : promiseService" , function() {
 	var $httpbackend;
 	var $http;
 
-	beforeEach(module("myApp"));
+    beforeEach(module("myApp"));
 
-	beforeEach(inject(function ($injector) {
+    beforeEach(inject(function ($injector) {
         service = $injector.get("promiseService");
         $timeout = $injector.get("$timeout");
         $rootScope = $injector.get("$rootScope");
@@ -93,11 +104,24 @@ describe("Service : promiseService" , function() {
         $http = $injector.get("$http");
     }));
 
-	it("should_be_defined", function(){
-        expect(service).toBeDefined();
-	});
+    beforeEach(function(){
+        jasmine.clock().install();
+    });
 
-	it("sleep_with_not_integer_interval_should_throw_exception", function () {
+    afterEach(function() {
+        jasmine.clock().uninstall();
+    });
+
+    var tickClock = function() {
+        jasmine.clock().tick(50000);
+        $rootScope.$apply();
+    };
+
+    it("should_be_defined", function(){
+        expect(service).toBeDefined();
+    });
+
+    it("sleep_with_not_integer_interval_should_throw_exception", function () {
         expect(function () {
             service.sleep("invalid");
         }).toThrow(new Error("interval must be a positive float"));
@@ -109,13 +133,12 @@ describe("Service : promiseService" , function() {
         }).toThrow(new Error("interval must be a positive float"));
     });
 
-    it("sleep_with_positive_integer_interval_should_succeed", function (done) {
+    it("sleep_with_positive_integer_interval_should_succeed", function () {
         var interval = 100;
         service.sleep(interval).then(function (result) {
             expect(result).toEqual(interval);
-            done();
         });
-        $rootScope.$apply();
+        tickClock();
     });
 
 });
@@ -155,7 +178,7 @@ it("toAsync_with_invalid_parameter_function_should_throw_exception", function ()
     }).toThrow(new Error("action must be a function"));
 });
 
-it("toAsync_with_valid_sync_function_should_succeed", function (done) {
+it("toAsync_with_valid_sync_function_should_succeed", function () {
     spyOn(mockHelper, 'addOne').and.callThrough();
     var action = function () {
         return mockHelper.addOne(100);
@@ -164,12 +187,12 @@ it("toAsync_with_valid_sync_function_should_succeed", function (done) {
     service.toAsync(action).then(function (result) {
         expect(result).toBe(101);
         expect(mockHelper.addOne).toHaveBeenCalledWith(100);
-        done();
+        
     });
-    $rootScope.$apply();
+   tickClock();
 });
 
-it("toAsync_with_valid_async_function_should_succeed", function (done) {
+it("toAsync_with_valid_async_function_should_succeed", function () {
     spyOn(mockHelper, 'getUrl').and.callThrough();
     $httpBackend.when('GET', '/dummy').respond(mockHelper.dummyResponse);
     var action = function () {
@@ -178,14 +201,14 @@ it("toAsync_with_valid_async_function_should_succeed", function (done) {
     service.toAsync(action).then(function (result) {
         expect(mockHelper.getUrl).toHaveBeenCalled();
         expect(result.data).toEqual(mockHelper.dummyResponse);
-        done();
+        
     });
 
     $httpBackend.flush();
-    $rootScope.$apply();
+    tickClock();
 });
 
-it("toAsync_with_faulty_sync_function_should_succeed", function (done) {
+it("toAsync_with_faulty_sync_function_should_succeed", function () {
     spyOn(mockHelper, 'faultyFn').and.callThrough();
     var action = function () {
         return mockHelper.faultyFn();
@@ -193,9 +216,9 @@ it("toAsync_with_faulty_sync_function_should_succeed", function (done) {
     service.toAsync(action).then(null, function (rejection) {
         expect(mockHelper.faultyFn).toHaveBeenCalled();
         expect(rejection.message).toBe("I'm a faulty function");
-        done();
+       
     });
-    $rootScope.$apply();
+    tickClock();
 });
 
 var mockHelper = {
@@ -278,7 +301,7 @@ it("retry_with_invalid_parameter_function_should_throw_exception", function () {
 
 });
 
-it("retry_with_faulty_sync_function_should_succeed", function (done) {
+it("retry_with_faulty_sync_function_should_succeed", function () {
     spyOn(mockHelper, 'faultyFn').and.callThrough();
     var action = function () {
         return mockHelper.faultyFn();
@@ -288,13 +311,13 @@ it("retry_with_faulty_sync_function_should_succeed", function (done) {
         expect(mockHelper.faultyFn).toHaveBeenCalled();
         expect(mockHelper.faultyFn.calls.count()).toBe(3);
         expect(rejection.message).toBe("I'm a faulty function");
-        done();
+       
     });
-    $rootScope.$apply();
+    tickClock();
 
 });
 
-it("retry_with_faulty_sync_function_and_options_should_succeed", function (done) {
+it("retry_with_faulty_sync_function_and_options_should_succeed", function () {
     spyOn(mockHelper, 'faultyFn').and.callThrough();
     var action = function () {
         return mockHelper.faultyFn();
@@ -305,13 +328,13 @@ it("retry_with_faulty_sync_function_and_options_should_succeed", function (done)
         expect(mockHelper.faultyFn).toHaveBeenCalled();
         expect(mockHelper.faultyFn.calls.count()).toBe(5);
         expect(rejection.message).toBe("I'm a faulty function");
-        done();
+       
     });
-    $rootScope.$apply();
+    tickClock();
 
 });
 
-it("retry_with_valid_sync_function_should_succeed", function (done) {
+it("retry_with_valid_sync_function_should_succeed", function () {
     spyOn(mockHelper, 'addOne').and.callThrough();
     var action = function () {
         return mockHelper.addOne(100);
@@ -321,12 +344,12 @@ it("retry_with_valid_sync_function_should_succeed", function (done) {
         expect(result).toBe(101);
         expect(mockHelper.addOne).toHaveBeenCalled();
         expect(mockHelper.addOne.calls.count()).toBe(1);
-        done();
+        
     });
-    $rootScope.$apply();
+   tickClock();
 });
 
-it("retry_with_valid_async_function_should_succeed", function (done) {
+it("retry_with_valid_async_function_should_succeed", function () {
     spyOn(mockHelper, 'getUrl').and.callThrough();
     $httpBackend.when('GET', '/dummy').respond(mockHelper.dummyResponse);
     var action = function () {
@@ -336,10 +359,10 @@ it("retry_with_valid_async_function_should_succeed", function (done) {
     promise.then(function (result) {
         expect(mockHelper.getUrl).toHaveBeenCalled();
         expect(result.data).toEqual(mockHelper.dummyResponse);
-        done();
+        
     });
     $httpBackend.flush();
-    $rootScope.$apply();
+    tickClock();
 });
 ```
 
